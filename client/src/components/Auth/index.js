@@ -8,7 +8,12 @@ import {
   Container,
   TextField,
 } from "@material-ui/core";
+
+import { GoogleLogin } from "react-google-login";
+import { useDispatch } from "react-redux";
+import { useHistory } from "react-router-dom";
 import Input from "./Input";
+import Icon from "./icon";
 import LockOutLinedIcon from "@material-ui/icons/LockOutlined";
 import useStyles from "./styles";
 
@@ -17,6 +22,8 @@ function Auth() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const dispatch = useDispatch();
+  const history = useHistory();
 
   const handleShowPassword = () =>
     setShowPassword((prevShowPassword) => !prevShowPassword);
@@ -28,6 +35,22 @@ function Auth() {
   const switchMode = () => {
     setIsSignup((prevIsSignUp) => !prevIsSignUp);
     handleShowPassword(false);
+  };
+
+  const googleSuccess = async (res) => {
+    const result = res?.profileObj;
+    const token = res?.tokenId;
+
+    try {
+      dispatch({ type: "AUTH", data: { result, token } });
+      history.push("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const googleFailure = () => {
+    console.log("Google sign in was unsuccessful. Try again later");
   };
 
   return (
@@ -78,6 +101,7 @@ function Auth() {
               />
             )}
           </Grid>
+
           <Button
             type="submit"
             fullWidth
@@ -87,6 +111,27 @@ function Auth() {
           >
             {isSignup ? "Sign Up" : "Sign In"}
           </Button>
+
+          <GoogleLogin
+            clientId="317967780816-4ico0bonjs36sbm1044n8pev808b6in3.apps.googleusercontent.com"
+            render={(renderProps) => (
+              <Button
+                className={classes.googleButton}
+                color="primary"
+                fullWidth
+                onClick={renderProps.onClick}
+                disabled={renderProps.disabled}
+                startIcon={<Icon />}
+                variant="contained"
+              >
+                Google Sign In
+              </Button>
+            )}
+            onSuccess={googleSuccess}
+            onFailure={googleFailure}
+            cookiePolicy={"single_host_origin"}
+          />
+
           <Grid container justifyContent="flex-end">
             <Grid item>
               <Button onClick={switchMode}>
